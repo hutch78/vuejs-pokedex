@@ -26,12 +26,28 @@
                       <div class="col">
                           <table class="stats-table">
                               <tr>
-                                  <th v-for="row in monster.stats">{{ row.stat.name }}</th>
+                                  <th 
+                                    v-for="row in monster.stats">
+                                      {{ row.stat.name }}
+                                  </th>
                               </tr>
                               <tr>
-                                <th v-for="row in monster.stats">{{ row.base_stat }}</th>
+                                <th 
+                                  v-for="row in monster.stats">
+                                    {{ row.base_stat }}
+                                  </th>
                               </tr>
                           </table>
+                          <ul class="monster-types-list">
+                            <li 
+                              v-for="monsterType in monsterTypes" 
+                              :key="monsterType.slot"
+                              class="monster-types-list__item" 
+                              :class="'monster-types-list__item--' + monsterType.name" 
+                              v-bind:style="{ borderColor: monsterType.color, backgroundColor: monsterType.color }">
+                                <span>{{ monsterType.name }}</span>
+                            </li>
+                          </ul>
                       </div>
                   </div>
               </div>  <!-- .panel-bpdy -->
@@ -55,22 +71,44 @@ export default {
     return {
       loading: false,
       monster: null,
-      errors: []
+      errors: [],
+
+      // borrowed from https://github.com/nolanlawson/pokedex.org/blob/master/src/js/shared/monster/typesToColors.js
+      colors: {
+        normal: '#A8A878',
+        fire: '#F08030',
+        fighting: '#C03028',
+        water: '#6890F0',
+        grass: '#78C850',
+        poison: '#A040A0',
+        electric: '#F8D030',
+        ground: '#E0C068',
+        rock: '#B8A038',
+        bug: '#A8B820',
+        dragon: '#7038F8',
+        ghost: '#705898',
+        dark: '#705848',
+        fairy: '#EE99AC',
+        steel: '#B8B8D0',
+        psychic: '#F85888',
+        ice: '#98D8D8',
+        flying: '#A890F0'
+      }
     };
   },
   mounted() {
     let vm = this;
-    console.log("Monster mounted");
+    // console.log("Monster mounted");
   },
   methods: {
     getMonster(){
       let vm = this;
-      this.error = this.monster = null;
+      this.errors = this.monster = null;
       vm.loading = true
       axios.get(`https://pokeapi.co/api/v2/pokemon/${vm.$route.params.id}`)
         .then(response => {
           // JSON responses are automatically parsed.
-          console.log(response);
+          // console.log(response);
           //   this.totalResults = response.data.count;
           vm.monster = response.data;
           vm.loading = false;
@@ -79,6 +117,13 @@ export default {
           vm.errors.push(e);
           vm.loading = false;
         });
+    },
+    getColorFromType(type){
+      console.log('')
+      console.log('Getting color:')
+      console.log(type)
+      console.log('')
+      return this.colors[type];
     }
   },
   watch: {
@@ -86,7 +131,7 @@ export default {
   },
   created() {
     let vm = this;
-    console.log("Monster created");
+    // console.log("Monster created");
     vm.getMonster();
   },
   computed: {
@@ -98,6 +143,17 @@ export default {
     },
     prevId(){
       return (parseInt(this.id) - 1).toString();
+    },
+    monsterTypes(){
+      let vm = this;
+      return vm.monster.types.map(type => {
+        // return type;
+        return {
+          name: type.type.name,
+          color: vm.getColorFromType(type.type.name),
+          slot: type.slot
+        }
+      })
     }
   }
 };
@@ -169,6 +225,28 @@ a {
 
 .monster-name {
     text-transform: capitalize;
+}
+
+
+.monster-types-list {
+  margin: 2rem 0 0;
+  padding: 0;
+  &__item {
+    display: inline-block;
+    font-size: 1.2rem;
+    padding: .5em;
+    border-radius: 5px;
+    border: 1px solid #e7e7e7;
+    text-transform: capitalize;
+    margin: 0;
+    span {
+      font-weight: 700;
+      color: white;
+    }
+    &:not(:last-child){
+      margin-right: 0.25rem;
+    }
+  }
 }
 
 </style>
